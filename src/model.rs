@@ -9,6 +9,7 @@ use std::io::BufRead;
 use std::mem;
 use encoding::{Encoding, DecoderTrap};
 use encoding::all::WINDOWS_874;
+use radix_trie::Trie;
 
 const HEADER_SIZE: u64 = 256;
 
@@ -55,7 +56,7 @@ impl DataFile{
 	fn read_id(&mut self) -> u32{
 		let mut buffer = [0u8; 4];
 		self.reader.read(&mut buffer);
-		
+
 		return unsafe{mem::transmute_copy(&buffer)};
 	}
 
@@ -81,4 +82,22 @@ impl DataFile{
 			return WINDOWS_874.decode(&buffer, DecoderTrap::Ignore).unwrap();
 		}
 	}
+}
+
+pub fn load(filename: String, trie: &mut Trie<String, u32>) -> Result<(), String>{
+	let mut fp = try!(DataFile::open(filename).map_err(|e| e.to_string()));
+	let mut last_id = 0;
+
+	while fp.has_next(){
+		let record = fp.record();
+		if cfg!(debug_assertions) && record.id != last_id+1 {
+			return Err("ID not continuous".to_owned());
+		}
+
+		// println!("id {} text {}", record.id, record.text);
+		trie.insert(record.text, record.id);
+		last_id = record.id;
+	}
+
+	Ok(())
 }

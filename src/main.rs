@@ -11,12 +11,10 @@ use std::time::Duration;
 use radix_trie::Trie;
 use stopwatch::{Stopwatch};
 
-const DEBUG: bool = false;
-
 macro_rules! print_err {
 	($($arg:tt)*) => (
 		{
-			if DEBUG {
+			if cfg!(debug_assertions) {
 				use std::io::prelude::*;
 				if let Err(e) = write!(&mut ::std::io::stderr(), "{}\n", format_args!($($arg)*)) {
 					panic!("Failed to write to stderr.\
@@ -27,29 +25,6 @@ macro_rules! print_err {
 			}
 		}
 	)
-}
-
-fn load(filename: String, trie: &mut Trie<String, u32>) -> Result<(), String>{
-	let mut fp = try!(model::DataFile::open(filename).map_err(|e| e.to_string()));
-	let mut last_id = 0;
-	let mut trie_elapsed = 0i64;
-
-	while fp.has_next(){
-		let record = fp.record();
-		if DEBUG && record.id != last_id+1 {
-			return Err("ID not continuous".to_owned());
-		}
-
-		// println!("id {} text {}", record.id, record.text);
-		let sw = Stopwatch::start_new();
-		trie.insert(record.text, record.id);
-		trie_elapsed += sw.elapsed_ms();
-		last_id = record.id;
-	}
-
-	print_err!("Trie insertion took {}ms", trie_elapsed);
-
-	Ok(())
 }
 
 fn get_args_fn() -> String{
@@ -68,7 +43,7 @@ fn main(){
 	let mut trie = Trie::<String, u32>::new();
 
 	let sw = Stopwatch::start_new();
-	if load(file, &mut trie).is_err() {
+	if model::load(file, &mut trie).is_err() {
 		println!("Cannot read input file");
 	}
 	print_err!("Read take {}ms", sw.elapsed_ms());
@@ -79,9 +54,14 @@ fn main(){
 	let mut count = 0;
 	for item in child.iter() {
 		count += 1;
-		// println!("Key {} Value {}", item.0, item.1);
+		if cfg!(debug_assertions) {
+			println!("Key {} Value {}", item.0, item.1);
+		}
 	}
 	print_err!("Search over {} items take {}ms", count, sw.elapsed_ms());
-	println!("Run finished");
-	sleep(Duration::from_secs(10000));
+
+	if !cfg!(debug_assertions) {
+		println!("Run finished");
+		sleep(Duration::from_secs(10000));
+	}
 }
