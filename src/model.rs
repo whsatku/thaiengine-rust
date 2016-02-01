@@ -7,6 +7,8 @@ use std::io::Seek;
 use std::io::Read;
 use std::io::BufRead;
 use std::mem;
+use std::thread;
+use std::sync::mpsc::channel;
 use encoding::{Encoding, DecoderTrap};
 use encoding::all::WINDOWS_874;
 use radix_trie::Trie;
@@ -85,20 +87,44 @@ impl DataFile{
 }
 
 pub fn load(filename: String, trie: &mut Trie<String, u32>) -> Result<(), String>{
-	let mut fp = try!(DataFile::open(filename).map_err(|e| e.to_string()));
-	let mut last_id = 0;
+	let (tx, rx) = channel::<Result<Record, String>>();
+	thread::spawn(move || {
+		let fp = DataFile::open(filename);
 
-	while fp.has_next(){
-		let record = fp.record();
-		if cfg!(feature="assertion") && record.id != last_id+1 {
-			return Err("ID not continuous".to_owned());
+		if fp.is_err() {
+			tx.send(Err(fp.err().unwrap().to_string())).unwrap();
+			return;
 		}
 
-		if cfg!(feature="dump_data") {
-			println!("id {} text {}", record.id, record.text);
+		let mut fp = fp.unwrap();
+		let mut last_id = 0;
+
+		while fp.has_next() {
+			let record = fp.record();
+			// if cfg!(feature="assertion") && record.id != last_id+1 {
+			// 	tx.send(Err("ID not continuous".to_owned()));
+			// 	return;
+			// }
+
+			if cfg!(feature="dump_data") {
+				println!("id {} text {}", record.id, record.text);
+			}
+
+			tx.send(Ok(fp.record())).unwrap();
+			last_id = record.id;
 		}
+	});
+
+	loop{
+		let record = rx.recv();
+		if record.is_err() {
+			// channel disconnection
+			break;
+		}
+
+		let record = try!(record.unwrap());
+
 		trie.insert(record.text, record.id);
-		last_id = record.id;
 	}
 
 	Ok(())
