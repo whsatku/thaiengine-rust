@@ -40,10 +40,8 @@ fn main(){
 	let file = get_args_fn();
 	let mut trie = Trie::<String, u32>::new();
 
-	let load = model::load(file, &mut trie);
-	if load.is_err() {
-		println!("Cannot read input file: {}", load.err().unwrap().to_string());
-		return;
+	if model::load(file, &mut trie).is_err() {
+		println!("Cannot read input file");
 	}
 	print_err!("Input file loaded");
 
