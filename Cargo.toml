@@ -1,0 +1,13 @@
+[package]
+name = "thaiengine"
+version = "0.1.0"
+authors = ["Manatsawin Hanmongkolchai <manatsawin+git@gmail.com>"]
+build = "build.rs"
+
+[dependencies]
+radix_trie = "*"
+libc = "0.2.6"
+encoding = "0.2.32"
+
+[build-dependencies]
+gcc = "0.3"
