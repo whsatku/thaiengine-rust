@@ -90,11 +90,13 @@ pub fn load(filename: String, trie: &mut Trie<String, u32>) -> Result<(), String
 
 	while fp.has_next(){
 		let record = fp.record();
-		if cfg!(debug_assertions) && record.id != last_id+1 {
+		if cfg!(feature="assertion") && record.id != last_id+1 {
 			return Err("ID not continuous".to_owned());
 		}
 
-		// println!("id {} text {}", record.id, record.text);
+		if cfg!(feature="dump_data") {
+			println!("id {} text {}", record.id, record.text);
+		}
 		trie.insert(record.text, record.id);
 		last_id = record.id;
 	}

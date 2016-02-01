@@ -14,7 +14,7 @@ use stopwatch::{Stopwatch};
 macro_rules! print_err {
 	($($arg:tt)*) => (
 		{
-			if cfg!(debug_assertions) {
+			if cfg!(feature="assertion") {
 				use std::io::prelude::*;
 				if let Err(e) = write!(&mut ::std::io::stderr(), "{}\n", format_args!($($arg)*)) {
 					panic!("Failed to write to stderr.\
@@ -54,13 +54,13 @@ fn main(){
 	let mut count = 0;
 	for item in child.iter() {
 		count += 1;
-		if cfg!(debug_assertions) {
+		if cfg!(feature="dump_data") {
 			println!("Key {} Value {}", item.0, item.1);
 		}
 	}
 	print_err!("Search over {} items take {}ms", count, sw.elapsed_ms());
 
-	if !cfg!(debug_assertions) {
+	if cfg!(feature="wait_on_exit") {
 		println!("Run finished");
 		sleep(Duration::from_secs(10000));
 	}

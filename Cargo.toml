@@ -11,3 +11,8 @@ stopwatch = "0.0.6"
 
 [profile.release]
 lto = true
+
+[features]
+assertion = []
+dump_data = []
+wait_on_exit = []

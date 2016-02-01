@@ -7,7 +7,19 @@ Project from Software Pattern class.
 (Make sure you have [Rust](https://www.rust-lang.org/downloads.html) installed)
 
 ```
-$ cargo run SyllableDB-V1.dat
+$ cargo run --release SyllableDB-V1.dat
 ```
 
 (Syllable database can be obtained from the class Facebook group)
+
+Optional features:
+
+- `assertion`: Show time used to perform certain operations
+- `dump_data`: Print data while loading/searching
+- `wait_on_exit`: Don't exit, instead wait for long time
+
+To enable features:
+
+```
+$ cargo run --features="assertion dump_data" SyllableDB-V1.dat
+```
