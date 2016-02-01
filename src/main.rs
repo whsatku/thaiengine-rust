@@ -1,22 +1,8 @@
-// extern crate libc;
 extern crate encoding;
 
 mod model;
 
 use std::env;
-/**
-mod cmodel;
-let fp = cmodel::DataFile::open(file);
-// let metadata = fp.metadata();
-// println!("Magic number {} time {}", metadata.magic, metadata.timestamp);
-
-fp.to_data();
-
-while fp.has_more(){
-	let record = fp.record();
-	println!("id {}", record.id);
-}
-**/
 
 fn main(){
 	let file = env::args().nth(1);
