@@ -1,6 +1,5 @@
 extern crate encoding;
 extern crate radix_trie;
-extern crate stopwatch;
 
 mod model;
 
@@ -9,7 +8,6 @@ use std::process;
 use std::thread::sleep;
 use std::time::Duration;
 use radix_trie::Trie;
-use stopwatch::{Stopwatch};
 
 macro_rules! print_err {
 	($($arg:tt)*) => (
@@ -42,14 +40,12 @@ fn main(){
 	let file = get_args_fn();
 	let mut trie = Trie::<String, u32>::new();
 
-	let sw = Stopwatch::start_new();
 	if model::load(file, &mut trie).is_err() {
 		println!("Cannot read input file");
 	}
-	print_err!("Read take {}ms", sw.elapsed_ms());
+	print_err!("Input file loaded");
 
 
-	let sw = Stopwatch::start_new();
 	let child = trie.get_descendant(&String::from("สม")).unwrap();
 	let mut count = 0;
 	for item in child.iter() {
@@ -58,7 +54,7 @@ fn main(){
 			println!("Key {} Value {}", item.0, item.1);
 		}
 	}
-	print_err!("Search over {} items take {}ms", count, sw.elapsed_ms());
+	print_err!("Search found {} items", count);
 
 	if cfg!(feature="wait_on_exit") {
 		println!("Run finished");

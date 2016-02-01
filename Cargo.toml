@@ -7,7 +7,6 @@ build = "build.rs"
 [dependencies]
 radix_trie = "*"
 encoding = "0.2.32"
-stopwatch = "0.0.6"
 
 [profile.release]
 lto = true
