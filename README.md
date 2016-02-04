@@ -17,6 +17,7 @@ Optional features:
 - `assertion`: Show time used to perform certain operations
 - `dump_data`: Print data while loading/searching
 - `wait_on_exit`: Don't exit, instead wait for long time
+- `interactive`: Interactive build: ask for file to read, ask for search queries
 
 To enable features:
 
