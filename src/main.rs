@@ -93,7 +93,6 @@ fn interactive(trie: &Trie<String, u32>){
 			Err(x) => break
 		};
 	}
-	copperline.clear_history();
 }
 #[cfg(not(feature="interactive"))]
 #[allow(unused_variables)]
