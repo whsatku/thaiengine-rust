@@ -7,13 +7,12 @@ build = "build.rs"
 [dependencies]
 radix_trie = "*"
 encoding = "0.2.32"
-copperline = {version = "0.3.0", optional = true}
+stopwatch = "0.0.6"
 
 [profile.release]
 lto = true
 
 [features]
+default = ["assertion", "wait_on_exit"]
 assertion = []
-dump_data = []
 wait_on_exit = []
-interactive = ["copperline"]
