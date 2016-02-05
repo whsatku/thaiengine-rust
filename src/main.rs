@@ -42,7 +42,7 @@ fn get_args_fn() -> String{
 		None => {
 			match copperline.read_line_utf8("Input file to read: ") {
 				Ok(filename) => filename,
-				Err(x) => {
+				Err(_) => {
 					usage();
 					process::exit(1);
 				}
@@ -90,7 +90,7 @@ fn interactive(trie: &Trie<String, u32>){
 				copperline.add_history(query.clone());
 				search(&trie, &query);
 			},
-			Err(x) => break
+			Err(_) => break
 		};
 	}
 }
