@@ -61,16 +61,15 @@ impl DataFile{
 	}
 
 	fn read_tail_space(&mut self) -> bool{
-		self.reader.seek(SeekFrom::Current(11));
-
 		let mut buffer = [0u8; 1];
+		self.reader.seek(SeekFrom::Current(4));
 		self.reader.read(&mut buffer);
 		return unsafe{mem::transmute_copy(&buffer)};
 	}
 
 	fn read_text(&mut self) -> String{
 		let has_tail = self.read_tail_space();
-		self.reader.seek(SeekFrom::Current(8));
+		self.reader.seek(SeekFrom::Current(15));
 
 		if has_tail {
 			let mut buffer = [0u8; 1023];
