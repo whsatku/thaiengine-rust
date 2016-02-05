@@ -74,7 +74,7 @@ fn main(){
 		done += 1.0;
 
 		if done % LOOP_UPDATE_EVERY == 0.0 {
-			print!("Processing {} of {} ({:.2}%)\r", done, total, (done/total)*100.0);
+			print_err!("Processing {} of {} ({:.2}%)\r", done, total, (done/total)*100.0);
 		}
 
 		let mut total_time = 0;
@@ -86,7 +86,7 @@ fn main(){
 
 		data.push((key, total_time));
 	}
-	println!("\n\nDone! Processing data...");
+	print_err!("\n\nDone! Processing data...\n");
 
 	data.sort_by_key(|i| i.1);
 
