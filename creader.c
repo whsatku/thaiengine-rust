@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define c_time long int
+#define c_time uint64_t
 
 typedef struct fileid{
 	uint16_t magicKey;
@@ -15,12 +15,14 @@ typedef struct fileid{
 
 typedef struct data_record_st{
 	uint32_t id;
-	uint16_t lang:2;
-	uint16_t length:10;
-	uint8_t tailSpace:1;
-	uint8_t isUnused:1;
-	uint8_t numeric:1;
-	uint8_t _filler:1;
+	// 00    000000,0000 0       0      0        0
+	// lang  length     tailSpc unused numeric filler
+	uint16_t lang:2;     // 2
+	uint16_t length:10;  // 12
+	uint8_t tailSpace:1; // 13*
+	uint8_t isUnused:1;  // 14
+	uint8_t numeric:1;   // 15
+	uint8_t _filler:1;   // 16 -> 2 byte
 	uint32_t mapFilePos;
 	c_time timestamp;
 	char szText[1023];
