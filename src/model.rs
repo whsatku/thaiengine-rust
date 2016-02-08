@@ -75,10 +75,30 @@ impl DataFile{
 		if has_tail {
 			let mut buffer = [0u8; 1023];
 			self.reader.read(&mut buffer);
-			return WINDOWS_874.decode(&buffer, DecoderTrap::Ignore).unwrap();
+
+			let mut out = WINDOWS_874.decode(&buffer, DecoderTrap::Ignore).unwrap();
+
+			// remove trailing \0
+			if cfg!(feature="assertion") {
+				assert_eq!(out.pop(), Some('\0'));
+			}else{
+				let size = buffer.len();
+				out.truncate(size - 1);
+			}
+
+			return out;
 		}else{
 			let mut buffer = Vec::new();
 			self.reader.read_until(0u8, &mut buffer);
+
+			// remove trailing \0
+			if cfg!(feature="assertion") {
+				assert_eq!(buffer.pop(), Some(0));
+			}else{
+				let size = buffer.len();
+				buffer.resize(size - 1, 0);
+			}
+
 			return WINDOWS_874.decode(&buffer, DecoderTrap::Ignore).unwrap();
 		}
 	}
