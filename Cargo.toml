@@ -7,13 +7,14 @@ build = "build.rs"
 [dependencies]
 radix_trie = "*"
 encoding = "0.2.32"
-copperline = {version = "0.3.0", optional = true}
+nanomsg = {version = "0.5.0", optional = true}
 
 [profile.release]
 lto = true
 
 [features]
+default = ["assertion", "server"]
 assertion = []
 dump_data = []
 wait_on_exit = []
-interactive = ["copperline"]
+server = ["nanomsg"]

@@ -1,17 +1,15 @@
 extern crate encoding;
 extern crate radix_trie;
-#[cfg(feature="interactive")]
-extern crate copperline;
+extern crate nanomsg;
 
 mod model;
+mod server;
 
 use std::env;
 use std::process;
-use std::thread::sleep;
-use std::time::Duration;
+use std::sync::{Arc, RwLock};
+use std::thread;
 use radix_trie::Trie;
-#[cfg(feature="interactive")]
-use copperline::Copperline;
 
 macro_rules! print_err {
 	($($arg:tt)*) => (
@@ -29,93 +27,31 @@ macro_rules! print_err {
 	)
 }
 
-fn usage(){
-	let exe_name = env::args().nth(0).unwrap();
-	println!("Usage: {0} filename.dat", exe_name);
-}
-
-#[cfg(feature="interactive")]
-fn get_args_fn() -> String{
-	let mut copperline = Copperline::new();
-	match env::args().nth(1) {
+fn load(lock: &RwLock<Trie<String, u32>>){
+	let file = match env::args().nth(1) {
 		Some(file) => file,
 		None => {
-			match copperline.read_line_utf8("Input file to read: ") {
-				Ok(filename) => filename,
-				Err(x) => {
-					usage();
-					process::exit(1);
-				}
-			}
+			return;
 		},
-	}
-}
-
-#[cfg(not(feature="interactive"))]
-fn get_args_fn() -> String{
-	match env::args().nth(1) {
-		Some(file) => file,
-		None => {
-			usage();
-			process::exit(1);
-		},
-	}
-}
-
-fn search(trie: &Trie<String, u32>, query: &String){
-	let child = trie.get_descendant(&query);
-
-	if child.is_none() {
-		print_err!("Search found 0 item\n\n");
-		return;
-	}
-
-	let child = child.unwrap();
-	let mut count = 0;
-	for item in child.iter() {
-		count += 1;
-		if cfg!(feature="dump_data") || cfg!(feature="interactive") {
-			println!("#{} {} -> {}", count, item.0, item.1);
-		}
-	}
-	print_err!("Search found {} item\n\n", count);
-}
-
-#[cfg(feature="interactive")]
-fn interactive(trie: &Trie<String, u32>){
-	let mut copperline = Copperline::new();
-	loop {
-		match copperline.read_line_utf8("Search: ") {
-			Ok(query) => {
-				copperline.add_history(query.clone());
-				search(&trie, &query);
-			},
-			Err(x) => break
-		};
-	}
-}
-#[cfg(not(feature="interactive"))]
-#[allow(unused_variables)]
-#[inline]
-fn interactive(trie: &Trie<String, u32>){}
-
-fn main(){
-	let file = get_args_fn();
-	let mut trie = Trie::<String, u32>::new();
-
-	if model::load(file, &mut trie).is_err() {
+	};
+	let ref mut trie = *lock.write().unwrap();
+	if model::load(file, trie).is_err() {
 		println!("Cannot read input file");
 		process::exit(1);
 	}
 	print_err!("Input file loaded\n");
+}
 
-	if cfg!(feature="interactive") {
-		interactive(&trie);
-	}else{
-		search(&trie, &String::from("สม"));
-		if cfg!(feature="wait_on_exit") {
-			println!("Run finished");
-			sleep(Duration::from_secs(10000));
-		}
-	}
+fn main(){
+	let trie = Trie::<String, u32>::new();
+	let lock = RwLock::new(trie);
+	let arc = Arc::new(lock);
+
+	let load_lock = arc.clone();
+	thread::spawn(move || {
+		let ref lock = *load_lock;
+		load(&lock);
+	});
+
+	server::start("tcp://127.0.0.1:5560", arc.clone());
 }

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 #![allow(unused_must_use)]
 use std::fs::File;
 use std::io;
@@ -102,4 +103,23 @@ pub fn load(filename: String, trie: &mut Trie<String, u32>) -> Result<(), String
 	}
 
 	Ok(())
+}
+
+pub fn search<'a>(trie: &'a Trie<String, u32>, query: &String) -> Vec<(&'a String, &'a u32)>{
+	let child = trie.get_descendant(&query);
+
+	if child.is_none() {
+		return Vec::new();
+	}
+
+	let child = child.unwrap();
+	let mut out = Vec::new();
+	for item in child.iter() {
+		out.push(item);
+		if cfg!(feature="dump_data") {
+			println!("{} -> {}", item.0, item.1);
+		}
+	}
+
+	return out;
 }
