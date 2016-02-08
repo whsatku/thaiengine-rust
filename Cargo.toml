@@ -14,8 +14,7 @@ env_logger = "0.3.2"
 lto = true
 
 [features]
-default = ["assertion", "server", "color"]
-assertion = []
+default = ["server", "color"]
 dump_data = []
 wait_on_exit = []
 server = []

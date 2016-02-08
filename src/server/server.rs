@@ -1,4 +1,4 @@
-use std::net::{TcpListener, TcpStream};
+use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::io::{Write, BufReader, BufRead, Error};
 use std::sync::{Arc, RwLock};
 use std::thread;
@@ -108,7 +108,7 @@ fn handle_client(stream: TcpStream, lock: Arc<RwLock<Trie<String, u32>>>){
 	}
 }
 
-pub fn start(bind: &str, lock: Arc<RwLock<Trie<String, u32>>>) -> Option<Error>{
+pub fn start<A: ToSocketAddrs>(bind: &A, lock: Arc<RwLock<Trie<String, u32>>>) -> Option<Error>{
 	let listener = match TcpListener::bind(bind){
 		Ok(socket) => socket,
 		Err(err) => {

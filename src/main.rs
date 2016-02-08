@@ -15,21 +15,7 @@ use radix_trie::Trie;
 use log::{LogRecord, LogLevelFilter};
 use env_logger::LogBuilder;
 
-macro_rules! print_err {
-	($($arg:tt)*) => (
-		{
-			if cfg!(feature="assertion") {
-				use std::io::prelude::*;
-				if let Err(e) = write!(&mut ::std::io::stderr(), "{}", format_args!($($arg)*)) {
-					panic!("Failed to write to stderr.\
-						\nOriginal error output: {}\
-						\nSecondary error writing to stderr: {}", format!($($arg)*), e);
-				}
-				::std::io::stderr().flush().unwrap()
-			}
-		}
-	)
-}
+const BIND: (&'static str, u16) = ("0.0.0.0", 5311);
 
 fn load(lock: &RwLock<Trie<String, u32>>){
 	let file = match env::args().nth(1) {
@@ -93,5 +79,5 @@ fn main(){
 		});
 	}
 
-	server::start("0.0.0.0:5311", arc.clone());
+	server::start(&BIND, arc.clone());
 }

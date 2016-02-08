@@ -79,7 +79,7 @@ impl DataFile{
 			let mut out = WINDOWS_874.decode(&buffer, DecoderTrap::Ignore).unwrap();
 
 			// remove trailing \0
-			if cfg!(feature="assertion") {
+			if cfg!(debug_assertion) {
 				assert_eq!(out.pop(), Some('\0'));
 			}else{
 				let size = buffer.len();
@@ -92,7 +92,7 @@ impl DataFile{
 			self.reader.read_until(0u8, &mut buffer);
 
 			// remove trailing \0
-			if cfg!(feature="assertion") {
+			if cfg!(debug_assertion) {
 				assert_eq!(buffer.pop(), Some(0));
 			}else{
 				let size = buffer.len();
@@ -110,7 +110,7 @@ pub fn load(filename: &String, trie: &mut Trie<String, u32>) -> Result<(), Strin
 
 	while fp.has_next(){
 		let record = fp.record();
-		if cfg!(feature="assertion") && record.id != last_id+1 {
+		if cfg!(debug_assertion) && record.id != last_id+1 {
 			return Err("ID not continuous".to_owned());
 		}
 
