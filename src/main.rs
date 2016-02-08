@@ -47,11 +47,13 @@ fn main(){
 	let lock = RwLock::new(trie);
 	let arc = Arc::new(lock);
 
-	let load_lock = arc.clone();
-	thread::spawn(move || {
-		let ref lock = *load_lock;
-		load(&lock);
-	});
+	{
+		let load_lock = arc.clone();
+		thread::spawn(move || {
+			let ref lock = *load_lock;
+			load(&lock);
+		});
+	}
 
 	server::start("tcp://127.0.0.1:5560", arc.clone());
 }
