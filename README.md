@@ -2,25 +2,32 @@
 
 Project from Software Pattern class.
 
-## Running
+## Running server
 
 (Make sure you have [Rust](https://www.rust-lang.org/downloads.html) installed)
 
 ```
-$ cargo run --release SyllableDB-V1.dat
+$ cargo run --bin thaiengine --release SyllableDB-V1.dat
 ```
 
 (Syllable database can be obtained from the class Facebook group)
 
 Optional features:
 
-- `assertion`: Show time used to perform certain operations
 - `dump_data`: Print data while loading/searching
-- `wait_on_exit`: Don't exit, instead wait for long time
-- `interactive`: Interactive build: ask for file to read, ask for search queries
+- `color` (default): Use colored log. Disable if your platform have problem rendering it
+- Set `RUST_LOG=debug` to view more logs
 
 To enable features:
 
 ```
-$ cargo run --features="assertion dump_data" SyllableDB-V1.dat
+$ cargo run --features="dump_data" --bin thaiengine --release SyllableDB-V1.dat
+```
+
+**Note**: Running without `--release` will use another code path with assertions, resulting in slower program.
+
+## Running client
+
+```
+$ cargo run --bin client --release
 ```

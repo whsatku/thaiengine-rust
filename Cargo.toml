@@ -15,8 +15,6 @@ stopwatch = "0.0.6"
 lto = true
 
 [features]
-default = ["server", "color"]
+default = ["color"]
 dump_data = []
-wait_on_exit = []
-server = []
 color = []
