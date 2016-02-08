@@ -7,14 +7,16 @@ build = "build.rs"
 [dependencies]
 radix_trie = "*"
 encoding = "0.2.32"
-nanomsg = {version = "0.5.0", optional = true}
+log = "0.3.5"
+env_logger = "0.3.2"
 
 [profile.release]
 lto = true
 
 [features]
-default = ["assertion", "server"]
+default = ["assertion", "server", "color"]
 assertion = []
 dump_data = []
 wait_on_exit = []
-server = ["nanomsg"]
+server = []
+color = []

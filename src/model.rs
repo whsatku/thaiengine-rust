@@ -24,7 +24,7 @@ pub struct Record{
 }
 
 impl DataFile{
-	pub fn open(path: String) -> Result<DataFile, io::Error>{
+	pub fn open(path: &String) -> Result<DataFile, io::Error>{
 		let mut fp = try!(File::open(path));
 
 		try!(fp.seek(SeekFrom::Start(HEADER_SIZE)));
@@ -104,7 +104,7 @@ impl DataFile{
 	}
 }
 
-pub fn load(filename: String, trie: &mut Trie<String, u32>) -> Result<(), String>{
+pub fn load(filename: &String, trie: &mut Trie<String, u32>) -> Result<(), String>{
 	let mut fp = try!(DataFile::open(filename).map_err(|e| e.to_string()));
 	let mut last_id = 0;
 
