@@ -71,14 +71,12 @@ impl DataFile{
 		self.reader.seek(SeekFrom::Current(1));
 		let mut buffer = [0u8; 1];
 		self.reader.read(&mut buffer);
-		self.reader.seek(SeekFrom::Current(2));
+		self.reader.seek(SeekFrom::Current(4+2));
 		return (buffer[0] & 1<<3) >> 3 == 1;
 	}
 
 	fn read_text(&mut self) -> String{
 		let has_tail = self.read_tail_space();
-		// seek over mapfilepos
-		self.reader.seek(SeekFrom::Current(4));
 
 		match self.is_64bit {
 			None => {
