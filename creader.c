@@ -19,10 +19,10 @@ typedef struct data_record_st{
 	// lang  length     tailSpc unused numeric filler
 	uint16_t lang:2;     // 2
 	uint16_t length:10;  // 12
-	uint8_t tailSpace:1; // 13*
-	uint8_t isUnused:1;  // 14
-	uint8_t numeric:1;   // 15
-	uint8_t _filler:1;   // 16 -> 2 byte
+	uint16_t tailSpace:1; // 13*
+	uint16_t isUnused:1;  // 14
+	uint16_t numeric:1;   // 15
+	uint16_t _filler:1;   // 16 -> 2 byte
 	uint32_t mapFilePos;
 	c_time timestamp;
 	char szText[1023];
