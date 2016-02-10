@@ -16,6 +16,7 @@ const HEADER_SIZE: u64 = 256;
 
 pub struct DataFile{
 	reader: BufReader<File>,
+	is_64bit: Option<bool>
 }
 
 pub struct Record{
@@ -32,6 +33,7 @@ impl DataFile{
 
 		Ok(DataFile{
 			reader: reader,
+			is_64bit: None,
 		})
 	}
 
@@ -62,15 +64,43 @@ impl DataFile{
 	}
 
 	fn read_tail_space(&mut self) -> bool{
+		// metadata is a 4 byte struct
+		// with 2 last bytes are padding
+		// we only interested in the second byte
+
+		self.reader.seek(SeekFrom::Current(1));
 		let mut buffer = [0u8; 1];
-		self.reader.seek(SeekFrom::Current(4));
 		self.reader.read(&mut buffer);
-		return unsafe{mem::transmute_copy(&buffer)};
+		self.reader.seek(SeekFrom::Current(2));
+		return (buffer[0] & 1<<3) >> 3 == 1;
 	}
 
 	fn read_text(&mut self) -> String{
 		let has_tail = self.read_tail_space();
-		self.reader.seek(SeekFrom::Current(15));
+		// seek over mapfilepos
+		self.reader.seek(SeekFrom::Current(4));
+
+		match self.is_64bit {
+			None => {
+				// detect for 64 bit time_t
+				// read 8 bit time_t + 4 bit padding
+				let mut buffer = [0u8; 8+4];
+				self.reader.read(&mut buffer);
+
+				if buffer.ends_with(&[0, 0, 0, 0]) {
+					self.is_64bit = Some(true);
+				}else{
+					self.reader.seek(SeekFrom::Current(-4));
+					self.is_64bit = Some(false);
+				}
+			}
+			Some(true) => {
+				self.reader.seek(SeekFrom::Current(8+4));
+			}
+			Some(false) => {
+				self.reader.seek(SeekFrom::Current(4));
+			}
+		}
 
 		if has_tail {
 			let mut buffer = [0u8; 1023];
