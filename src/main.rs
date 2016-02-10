@@ -30,7 +30,7 @@ fn load(lock: &RwLock<Trie<String, u32>>){
 		error!(target: "loader", "Cannot read file {}", file);
 		process::exit(1);
 	}
-	info!(target: "loader", "File {} loaded. {} entires found", file, trie.len());
+	info!(target: "loader", "File {} loaded. {} entries found", file, trie.len());
 }
 
 #[cfg(feature="color")]

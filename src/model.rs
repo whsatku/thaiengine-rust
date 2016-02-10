@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 #![allow(unused_must_use)]
 use std::fs::File;
 use std::io;
@@ -37,46 +36,51 @@ impl DataFile{
 		})
 	}
 
-	pub fn has_next(&mut self) -> bool{
-		let mut buffer = [0u8; 1];
-		let result = self.reader.read(&mut buffer);
+	pub fn record(&mut self) -> Option<Record>{
+		let id = match self.read_id() {
+			Some(x) => x,
+			None => return None
+		};
+		let text = match self.read_text() {
+			Some(x) => x,
+			None => return None
+		};
 
-		let rt = result.is_ok() && result.ok().unwrap() > 0;
-		self.reader.seek(SeekFrom::Current(-1));
-		return rt;
-	}
-
-	pub fn record(&mut self) -> Record{
-		let id = self.read_id();
-		let text = self.read_text();
-
-		Record{
+		Some(Record{
 			id: id,
 			text: text
+		})
+	}
+
+	fn read_id(&mut self) -> Option<u32>{
+		let mut buffer = [0u8; 4];
+		match self.reader.read(&mut buffer) {
+			Ok(4) => Some(unsafe{mem::transmute_copy(&buffer)}),
+			Ok(_) => None,
+			Err(_) => None,
 		}
 	}
 
-	fn read_id(&mut self) -> u32{
-		let mut buffer = [0u8; 4];
-		self.reader.read(&mut buffer);
-
-		return unsafe{mem::transmute_copy(&buffer)};
-	}
-
-	fn read_tail_space(&mut self) -> bool{
+	fn read_tail_space(&mut self) -> Option<bool>{
 		// metadata is a 4 byte struct
 		// with 2 last bytes are padding
 		// we only interested in the second byte
 
 		self.reader.seek(SeekFrom::Current(1));
 		let mut buffer = [0u8; 1];
-		self.reader.read(&mut buffer);
+		match self.reader.read(&mut buffer) {
+			Ok(1) => {},
+			_ => return None,
+		};
 		self.reader.seek(SeekFrom::Current(4+2));
-		return (buffer[0] & 1<<3) >> 3 == 1;
+		Some((buffer[0] & 1<<3) >> 3 == 1)
 	}
 
-	fn read_text(&mut self) -> String{
-		let has_tail = self.read_tail_space();
+	fn read_text(&mut self) -> Option<String>{
+		let has_tail = match self.read_tail_space() {
+			Some(x) => x,
+			_ => return None
+		};
 
 		match self.is_64bit {
 			None => {
@@ -114,7 +118,7 @@ impl DataFile{
 				out.truncate(size - 1);
 			}
 
-			return out;
+			Some(out)
 		}else{
 			let mut buffer = Vec::new();
 			self.reader.read_until(0u8, &mut buffer);
@@ -127,7 +131,10 @@ impl DataFile{
 				buffer.resize(size - 1, 0);
 			}
 
-			return WINDOWS_874.decode(&buffer, DecoderTrap::Ignore).unwrap();
+			match WINDOWS_874.decode(&buffer, DecoderTrap::Ignore) {
+				Ok(x) => Some(x),
+				_ => None
+			}
 		}
 	}
 }
@@ -136,8 +143,11 @@ pub fn load(filename: &String, trie: &mut Trie<String, u32>) -> Result<(), Strin
 	let mut fp = try!(DataFile::open(filename).map_err(|e| e.to_string()));
 	let mut last_id = 0;
 
-	while fp.has_next(){
-		let record = fp.record();
+	loop{
+		let record = match fp.record() {
+			Some(x) => x,
+			None => break,
+		};
 		if cfg!(debug_assertion) && record.id != last_id+1 {
 			return Err("ID not continuous".to_owned());
 		}
@@ -152,6 +162,7 @@ pub fn load(filename: &String, trie: &mut Trie<String, u32>) -> Result<(), Strin
 	Ok(())
 }
 
+#[allow(dead_code)]
 pub fn search<'a>(trie: &'a Trie<String, u32>, query: &String) -> Vec<(&'a String, &'a u32)>{
 	let child = trie.get_descendant(&query);
 
