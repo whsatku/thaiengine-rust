@@ -61,26 +61,8 @@ impl DataFile{
 		}
 	}
 
-	fn read_tail_space(&mut self) -> Option<bool>{
-		// metadata is a 4 byte struct
-		// with 2 last bytes are padding
-		// we only interested in the second byte
-
-		self.reader.seek(SeekFrom::Current(1));
-		let mut buffer = [0u8; 1];
-		match self.reader.read(&mut buffer) {
-			Ok(1) => {},
-			_ => return None,
-		};
-		self.reader.seek(SeekFrom::Current(4+2));
-		Some((buffer[0] & 1<<3) >> 3 == 1)
-	}
-
 	fn read_text(&mut self) -> Option<String>{
-		let has_tail = match self.read_tail_space() {
-			Some(x) => x,
-			_ => return None
-		};
+		self.reader.seek(SeekFrom::Current(8));
 
 		match self.is_64bit {
 			None => {
@@ -104,37 +86,20 @@ impl DataFile{
 			}
 		}
 
-		if has_tail {
-			let mut buffer = [0u8; 1023];
-			self.reader.read(&mut buffer);
+		let mut buffer = Vec::new();
+		self.reader.read_until(0u8, &mut buffer);
 
-			let mut out = WINDOWS_874.decode(&buffer, DecoderTrap::Ignore).unwrap();
-
-			// remove trailing \0
-			if cfg!(debug_assertion) {
-				assert_eq!(out.pop(), Some('\0'));
-			}else{
-				let size = buffer.len();
-				out.truncate(size - 1);
-			}
-
-			Some(out)
+		// remove trailing \0
+		if cfg!(debug_assertion) {
+			assert_eq!(buffer.pop(), Some(0));
 		}else{
-			let mut buffer = Vec::new();
-			self.reader.read_until(0u8, &mut buffer);
+			let size = buffer.len();
+			buffer.resize(size - 1, 0);
+		}
 
-			// remove trailing \0
-			if cfg!(debug_assertion) {
-				assert_eq!(buffer.pop(), Some(0));
-			}else{
-				let size = buffer.len();
-				buffer.resize(size - 1, 0);
-			}
-
-			match WINDOWS_874.decode(&buffer, DecoderTrap::Ignore) {
-				Ok(x) => Some(x),
-				_ => None
-			}
+		match WINDOWS_874.decode(&buffer, DecoderTrap::Ignore) {
+			Ok(x) => Some(x),
+			_ => None
 		}
 	}
 }
